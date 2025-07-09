@@ -23,4 +23,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.delete('/:id', async (req, res) => {
+  try {
+    const deletedSkill = await Skill.findByIdAndDelete(req.params.id);
+    if (!deletedSkill) return res.status(404).json({ message: "Skill not found" });
+    res.json({ message: "Skill deleted", id: req.params.id });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// UPDATE SKILL
+router.put("/:id", async (req, res) => {
+  try {
+    const updated = await Skill.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
