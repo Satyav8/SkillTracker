@@ -20,3 +20,4 @@ exports.deleteSkill = async (req, res) => {
     await Skill.findByIdAndDelete(req.params.id);
     res.json({ message: 'Skill deleted' });
 };
+
