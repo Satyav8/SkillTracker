@@ -1,17 +1,24 @@
 import { useState } from "react";
+import axios from "axios";
 
 function App() {
   const [skills, setSkills] = useState([]);
   const [skillName, setSkillName] = useState("");
   const [level, setLevel] = useState("Beginner");
 
-  const handleAddSkill = () => {
-    if (skillName.trim() === "") return;
-    const newSkill = { name: skillName, level };
+  const handleAddSkill =  async () => {
+  if (skillName.trim() === "") return;
+  const newSkill = { name: skillName, level };
+  
+  try {
+    await axios.post("http://localhost:5000/api/skills", newSkill);
     setSkills([...skills, newSkill]);
     setSkillName("");
     setLevel("Beginner");
-  };
+  } catch (err) {
+    console.error("Error adding skill:", err);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">

@@ -1,10 +1,26 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const skillController = require('../controller/skillController');
+const Skill = require("../models/skillModel");
 
-router.get('/', skillController.getSkills);
-router.post('/', skillController.addSkill);
-router.put('/:id', skillController.updateSkill);
-router.delete('/:id', skillController.deleteSkill);
+// @desc Add a new skill
+router.post("/", async (req, res) => {
+  const { name, level } = req.body;
+  try {
+    const skill = await Skill.create({ name, level });
+    res.status(201).json(skill);
+  } catch (err) {
+    res.status(400).json({ message: "Failed to add skill", error: err });
+  }
+});
+
+// @desc Get all skills
+router.get("/", async (req, res) => {
+  try {
+    const skills = await Skill.find();
+    res.status(200).json(skills);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch skills", error: err });
+  }
+});
 
 module.exports = router;
