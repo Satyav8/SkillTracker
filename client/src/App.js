@@ -1,263 +1,219 @@
-import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
-import { AuthContext } from "./AuthContext";
+import React, { useState } from 'react';
 
-const API_BASE = "/skills";
-
-export default function App() {
-  const { user, setUser } = useContext(AuthContext);
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [skill, setSkill] = useState("");
-  const [level, setLevel] = useState("Beginner");
+const App = () => {
   const [skills, setSkills] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterLevel, setFilterLevel] = useState("All");
-  const [editingId, setEditingId] = useState(null);
-  const [editedSkill, setEditedSkill] = useState("");
-  const [editedLevel, setEditedLevel] = useState("Beginner");
+  const [newSkill, setNewSkill] = useState('');
+  const [level, setLevel] = useState('Beginner');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterLevel, setFilterLevel] = useState('All Levels');
+  const [editIndex, setEditIndex] = useState(null);
 
-  useEffect(() => {
-    if (!user) return;
-    axios
-      .get(API_BASE)
-      .then((res) => setSkills(res.data))
-      .catch(console.error);
-  }, [user]);
+  const addOrUpdateSkill = () => {
+    if (!newSkill.trim()) return;
 
-  const login = async () => {
-    const res = await axios.post("/auth/login", form);
-    localStorage.setItem("token", res.data.token);
-    const userRes = await axios.get("/auth/me");
-    setUser(userRes.data);
+    const skill = { name: newSkill.trim(), level };
+
+    if (editIndex !== null) {
+      const updated = [...skills];
+      updated[editIndex] = skill;
+      setSkills(updated);
+      setEditIndex(null);
+    } else {
+      setSkills([...skills, skill]);
+    }
+
+    setNewSkill('');
+    setLevel('Beginner');
   };
 
-  const signup = async () => {
-    const res = await axios.post("/auth/signup", form);
-    localStorage.setItem("token", res.data.token);
-    const userRes = await axios.get("/auth/me");
-    setUser(userRes.data);
+  const handleEdit = (index) => {
+    const skill = skills[index];
+    setNewSkill(skill.name);
+    setLevel(skill.level);
+    setEditIndex(index);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    setSkills([]);
-  };
-
-  const addSkill = async (e) => {
-    e.preventDefault();
-    if (!skill.trim()) return;
-    const res = await axios.post(API_BASE, { name: skill, level });
-    setSkills([...skills, res.data]);
-    setSkill("");
-    setLevel("Beginner");
-  };
-
-  const deleteSkill = async (id) => {
-    await axios.delete(`${API_BASE}/${id}`);
-    setSkills(skills.filter((s) => s._id !== id));
-  };
-
-  const startEdit = (skill) => {
-    setEditingId(skill._id);
-    setEditedSkill(skill.name);
-    setEditedLevel(skill.level);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditedSkill("");
-    setEditedLevel("Beginner");
-  };
-
-  const updateSkill = async (id) => {
-    const res = await axios.put(`${API_BASE}/${id}`, {
-      name: editedSkill,
-      level: editedLevel,
-    });
-    setSkills(skills.map((s) => (s._id === id ? res.data : s)));
-    cancelEdit();
+  const handleDelete = (index) => {
+    const updated = [...skills];
+    updated.splice(index, 1);
+    setSkills(updated);
   };
 
   const filteredSkills = skills.filter(
     (s) =>
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterLevel === "All" || s.level === filterLevel)
+      (filterLevel === 'All Levels' || s.level === filterLevel)
   );
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center px-6">
-        <div className="bg-white p-8 rounded-xl shadow-xl max-w-md w-full">
-          <h1 className="text-3xl font-extrabold text-center mb-6 text-indigo-600">
-            🚀 Welcome to SkillForge
-          </h1>
-          <input
-            placeholder="Name"
-            className="w-full p-3 mb-3 border rounded-lg"
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <input
-            placeholder="Email"
-            className="w-full p-3 mb-3 border rounded-lg"
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-          <input
-            placeholder="Password"
-            type="password"
-            className="w-full p-3 mb-4 border rounded-lg"
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-          />
-          <div className="flex gap-3">
-            <button
-              onClick={signup}
-              className="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold"
-            >
-              Sign Up
-            </button>
-            <button
-              onClick={login}
-              className="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold"
-            >
-              Login
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-10 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-extrabold text-indigo-700">⚡ Skill Tracker</h1>
-          <button
-            onClick={logout}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-medium"
-          >
-            Logout
-          </button>
-        </div>
+    <div style={styles.body}>
+      <div style={styles.container}>
+        <h1 style={styles.heading}>🧠 SkillForge Tracker</h1>
 
-        <form
-          onSubmit={addSkill}
-          className="flex flex-col sm:flex-row items-center gap-4 bg-white p-6 rounded-xl shadow-lg mb-8"
-        >
+        <div style={styles.inputRow}>
           <input
-            type="text"
-            placeholder="Enter a skill"
-            value={skill}
-            onChange={(e) => setSkill(e.target.value)}
-            className="border border-gray-300 p-3 rounded-lg w-full sm:w-1/2"
+            placeholder="✍️ Enter Skill"
+            value={newSkill}
+            onChange={(e) => setNewSkill(e.target.value)}
+            style={styles.input}
           />
-          <select
-            value={level}
-            onChange={(e) => setLevel(e.target.value)}
-            className="border border-gray-300 p-3 rounded-lg w-full sm:w-1/4"
-          >
+          <select value={level} onChange={(e) => setLevel(e.target.value)} style={styles.select}>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
           </select>
-          <button
-            type="submit"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-lg font-semibold"
-          >
-            ➕ Add
+          <button onClick={addOrUpdateSkill} style={styles.addBtn}>
+            {editIndex !== null ? '🔁 Update' : '➕ Add'}
           </button>
-        </form>
+        </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div style={styles.inputRow}>
           <input
-            type="text"
-            placeholder="🔍 Search skill..."
+            placeholder="🔍 Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 p-3 rounded-lg w-full"
+            style={styles.input}
           />
-          <select
-            value={filterLevel}
-            onChange={(e) => setFilterLevel(e.target.value)}
-            className="border border-gray-300 p-3 rounded-lg w-full sm:w-1/3"
-          >
-            <option value="All">All Levels</option>
+          <select value={filterLevel} onChange={(e) => setFilterLevel(e.target.value)} style={styles.select}>
+            <option>All Levels</option>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
           </select>
         </div>
 
-        <div className="space-y-4">
-          {filteredSkills.length === 0 ? (
-            <p className="text-gray-500">No matching skills found.</p>
-          ) : (
-            filteredSkills.map((skill) => (
-              <div
-                key={skill._id}
-                className="bg-white p-4 rounded-xl shadow flex justify-between items-center"
-              >
-                {editingId === skill._id ? (
-                  <div className="flex flex-col sm:flex-row gap-2 w-full">
-                    <input
-                      value={editedSkill}
-                      onChange={(e) => setEditedSkill(e.target.value)}
-                      className="border p-2 rounded w-full"
-                    />
-                    <select
-                      value={editedLevel}
-                      onChange={(e) => setEditedLevel(e.target.value)}
-                      className="border p-2 rounded"
-                    >
-                      <option>Beginner</option>
-                      <option>Intermediate</option>
-                      <option>Advanced</option>
-                    </select>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => updateSkill(skill._id)}
-                        className="bg-green-500 text-white px-3 py-1 rounded"
-                      >
-                        💾 Save
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="bg-gray-400 text-white px-3 py-1 rounded"
-                      >
-                        ❌ Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <div className="font-semibold text-lg text-gray-800">{skill.name}</div>
-                      <div className="text-sm text-gray-500">Level: {skill.level}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => startEdit(skill)}
-                        className="text-indigo-600 hover:text-indigo-800 text-lg"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => deleteSkill(skill._id)}
-                        className="text-red-600 hover:text-red-800 text-lg"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+        <ul style={styles.skillList}>
+          {filteredSkills.length > 0 ? (
+            filteredSkills.map((s, i) => (
+              <li key={i} style={styles.skillCard}>
+                <div>
+                  <span style={styles.skillName}>{s.name}</span>
+                  <span style={{ ...styles.levelTag, ...styles[`level_${s.level}`] }}>{s.level}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => handleEdit(i)} style={styles.iconBtn}>✏️</button>
+                  <button onClick={() => handleDelete(i)} style={styles.iconBtn}>🗑️</button>
+                </div>
+              </li>
             ))
+          ) : (
+            <p style={styles.noSkill}>🧩 No skills found.</p>
           )}
-        </div>
+        </ul>
       </div>
     </div>
   );
-}
+};
+
+const styles = {
+  body: {
+    background: 'linear-gradient(145deg, #0f0c29, #302b63, #24243e)',
+    minHeight: '100vh',
+    padding: '2rem',
+    fontFamily: 'Segoe UI, sans-serif',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  container: {
+    background: 'rgba(255, 255, 255, 0.07)',
+    backdropFilter: 'blur(12px)',
+    borderRadius: '20px',
+    padding: '2rem',
+    width: '100%',
+    maxWidth: '600px',
+    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+    color: '#fff',
+  },
+  heading: {
+    fontSize: '2rem',
+    textAlign: 'center',
+    marginBottom: '1.5rem',
+    letterSpacing: '1px',
+  },
+  inputRow: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginBottom: '1rem',
+  },
+  input: {
+    flex: 1,
+    padding: '0.8rem',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '8px',
+    color: '#fff',
+    outline: 'none',
+  },
+  select: {
+    padding: '0.8rem',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '8px',
+    color: '#fff',
+    outline: 'none',
+  },
+  addBtn: {
+    padding: '0.8rem 1rem',
+    background: '#10b981',
+    border: 'none',
+    borderRadius: '8px',
+    color: '#fff',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+  },
+  skillList: {
+    marginTop: '1.5rem',
+    listStyle: 'none',
+    padding: 0,
+  },
+  skillCard: {
+    background: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: '10px',
+    padding: '0.8rem 1rem',
+    marginBottom: '0.8rem',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  skillName: {
+    fontWeight: '600',
+    fontSize: '1rem',
+    marginRight: '1rem',
+  },
+  levelTag: {
+    padding: '0.3rem 0.6rem',
+    borderRadius: '12px',
+    fontSize: '0.8rem',
+    textTransform: 'uppercase',
+    fontWeight: 'bold',
+  },
+  level_Beginner: {
+    backgroundColor: '#2563eb',
+  },
+  level_Intermediate: {
+    backgroundColor: '#f59e0b',
+  },
+  level_Advanced: {
+    backgroundColor: '#ef4444',
+  },
+  noSkill: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    color: '#aaa',
+  },
+  iconBtn: {
+    background: 'transparent',
+    border: 'none',
+    color: '#fff',
+    fontSize: '1.1rem',
+    cursor: 'pointer',
+  },
+};
+
+export default App;
+
+
 
 
 
