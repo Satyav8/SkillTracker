@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Skill = require('../models/Skill');
-const { auth } = require('./auth'); // 🔐 Import the middleware
+const Skill = require('../models/Skill'); // ✅ This must point to your correct Skill model file
+const auth = require('../middleware/auth'); // ✅ Correct path to auth middleware
+
 
 // Get only logged-in user's skills
 router.get('/', auth, async (req, res) => {
