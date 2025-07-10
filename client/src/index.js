@@ -8,7 +8,7 @@ import './index.css';
 
 
 // ✅ Axios Base Config
-axios.defaults.baseURL = 'http://localhost:5000/api';
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE;
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
