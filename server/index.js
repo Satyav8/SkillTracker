@@ -1,29 +1,32 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
+  useUnifiedTopology: true
 }).then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Import route modules
-const { router: authRoutes } = require('./routes/auth');
+// Routes
+const authRoutes = require('./routes/auth');
 const skillRoutes = require('./routes/skills');
 
-// Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/skills', skillRoutes);
 
+// Server listener
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 
