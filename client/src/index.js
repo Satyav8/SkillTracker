@@ -1,13 +1,13 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import axios from 'axios';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
 
-
-// ✅ Axios Base Config
+// Axios Base Config
 axios.defaults.baseURL = "http://localhost:5000/api";
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -15,15 +15,18 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// ✅ Mount App
+// Mount App
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(
-  <AuthProvider>
-    <App />
-  </AuthProvider>
+  <BrowserRouter>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </BrowserRouter>
 );
 
-// (Optional) Report performance
+// Report performance
 reportWebVitals();
+
 
